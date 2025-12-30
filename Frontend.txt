@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Attendance System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Smart Attendance System</h1>
+
+    <video id="video" autoplay></video>
+    <button onclick="capture()">Mark Attendance</button>
+
+    <p id="result"></p>
+
+    <script src="script.js"></script>
+</body>
+</html>
+css
+body {
+    text-align: center;
+    font-family: Arial;
+    background: #f4f6f8;
+}
+
+video {
+    width: 400px;
+    border: 3px solid #333;
+    margin: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+javascript
+const video = document.getElementById("video");
+
+navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => video.srcObject = stream);
+
+function capture() {
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    canvas.getContext("2d").drawImage(video, 0, 0);
+    const imageData = canvas.toDataURL("image/jpeg");
+
+    fetch("http://127.0.0.1:5000/attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: imageData })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("result").innerText =
+            "Present: " + data.present.join(", ");
+    });
+}
